@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PROOFNOTE_REF: v0.4.4
+  PROOFNOTE_REF: 0578955eb53cfc59aafa21251a5d71a663a33ec6
   SITE_ORIGIN: https://proofnote.cash
 
 jobs:
