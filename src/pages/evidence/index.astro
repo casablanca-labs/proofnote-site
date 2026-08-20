@@ -1,0 +1,80 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { fmtDate } from "../../lib/date";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const published = new Set(
+  (await getCollection("posts", (p) => p.data.published)).map((p) => p.id),
+);
+const evidence = (await getCollection("evidence"))
+  .filter((e) => published.has(e.data.post))
+  .sort(
+  (a, b) => b.data.reviewed.valueOf() - a.data.reviewed.valueOf(),
+);
+---
+
+<Base title="Evidence — Proofnote">
+  <section class="wrap head">
+    <span class="eyebrow">Evidence</span>
+    <h1 class="measure">What the evidence establishes—and what it does not.</h1>
+    <p class="lede measure">
+      One page per update, separating reproducible public artifacts, reviewed current
+      implementation truth, and target work. Limits travel with every result.
+    </p>
+  </section>
+
+  <section class="wrap">
+    <div class="rows">
+      {
+        evidence.map((e) => (
+          <a href={`${base}/evidence/${e.id}/`} class="row">
+            <span class="mono when">{fmtDate(e.data.reviewed)}</span>
+            <span class="what">{e.data.title}</span>
+          </a>
+        ))
+      }
+      {evidence.length === 0 && <p class="muted">Nothing published yet.</p>}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .head {
+    padding-top: clamp(3rem, 7vw, 5.5rem);
+  }
+
+  .head h1 {
+    margin-bottom: 1.25rem;
+  }
+
+  .rows {
+    margin-top: 3rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .row {
+    display: flex;
+    gap: 1.5rem;
+    align-items: baseline;
+    padding: 1.15rem 0;
+    border-bottom: 1px solid var(--rule);
+    border-top: 0;
+  }
+
+  .row:hover .what {
+    color: #fff;
+  }
+
+  .when {
+    font-size: 0.72rem;
+    color: var(--dim);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .what {
+    color: var(--muted);
+    transition: color 0.15s ease;
+  }
+</style>

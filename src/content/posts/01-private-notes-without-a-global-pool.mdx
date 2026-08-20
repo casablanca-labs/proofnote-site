@@ -1,0 +1,242 @@
+---
+title: "Private Notes Without a Global Pool"
+date: 2026-08-18
+summary: "Phase 3 began with private conservation as the open problem. Relation V6 now carries a real proof through authenticated settlement, Recovery, and point-in-time wallet acceptance. The next test is successive ownership."
+canonical: "https://bitcoincashresearch.org/t/confidential-transactions/1724"
+published: true
+---
+
+import SourceFile from "../../components/SourceFile.astro";
+
+Several weeks ago, the Bitcoin Cash community funded a concrete Phase 3 plan:
+beaconless import funding, ML-KEM Recovery, wallet and chain integration,
+aggregation groundwork, and a chain-backed private-note proof roadmap. The
+funding request was also explicit about the part that was still unsolved.
+Private conservation—showing that hidden value could neither appear nor
+disappear—was the crucial research problem.
+
+That is no longer the boundary.
+
+The current Relation V6 path enforces hidden note semantics and exact
+conservation, constructs a real proof, authenticates it through the BCH
+verifier and settlement gate, recovers the recipient's candidates, and lets a
+wallet independently accept those candidates against proof and configured-node
+chain evidence at a point in time.
+
+That is a meaningful result. It is also half of the question.
+
+> Can private value move through successive owners using ordinary BCH UTXOs as
+> authoritative single-use state, while note ownership and value relationships
+> remain hidden, without a global mutable privacy pool or trusted sequencer?
+
+The import-to-private-acceptance half is now implemented and authenticated. The
+remaining decisive experiment is turning that accepted note into durable,
+spendable wallet state and privately transferring it to the next owner.
+
+## Why ask this without a pool?
+
+A shielded pool is a serious answer to private payments. Shared state can be
+economically efficient, and established pool designs have a body of research
+behind them. Proofnote's objection is not that pools are inherently bad, and it
+is not that a shared covenant automatically creates a trusted sequencer.
+
+Those are different problems. Shared mutable state can create contention:
+unrelated payments may need to advance the same state object. Trusted
+sequencing is an authority problem: a party decides admission, ordering,
+balances, checkpoints, partitions, or some other part of private-state
+progression. BCH consensus can resolve UTXO conflicts without granting that
+authority to an operator.
+
+The research question was narrower: can BCH keep ordinary UTXOs as the
+authoritative single-use state without adding a global mutable private-value
+pool, publicly persistent partitions, or an authority over private-state
+progression?
+
+The working answer separates three responsibilities:
+
+- **BCH** supplies authoritative, single-use settlement state. A spent outpoint
+  is spent because the chain says so.
+- **The private relation** proves the hidden ownership, value, completeness,
+  disjointness, and conservation statements that public transaction data
+  cannot reveal.
+- **The wallet** authenticates both the proof and chain evidence before it
+  accepts a recovered note.
+
+The aggregator remains part of the design. It assembles transactions and can
+coordinate proof production; it does not become a custodian, a private-balance
+database, or an authority the wallet must trust. Aggregation remains the
+privacy-default path. Direct spend is an exit, not the normal private-payment
+path.
+
+## What had to become real
+
+It is easy to make the distributed-UTXO idea sound complete in a diagram. The
+public claim had to wait until each boundary could reject a plausible-looking
+substitute.
+
+Relation V6 now has frozen private semantics, exact conservation, and
+independent semantic parity. A real SP1 proof is authenticated by the native
+verifier. The canonical settlement binds that proof to the verifier and gate,
+and passes the BCH 2026 consensus and standard VMs locally. The wallet does not
+accept an aggregator's word for any of this: it requires process-local proof
+authority, configured-node chain authority, authenticated Recovery V1, and the
+current backing state.
+
+The canonical settlement is **99,950 bytes**—50 bytes inside the standard
+transaction-size limit. That number is useful because it records the actual
+engineering envelope, not because transaction size is the research result.
+
+Here is the current boundary in compact form:
+
+| Capability | Result |
+|---|---|
+| Hidden Relation V6 semantics and exact conservation | **ESTABLISHED** |
+| Real proof, authenticated verifier/gate, and exact local settlement | **ESTABLISHED** |
+| Recovery V1 and point-in-time wallet acceptance | **ESTABLISHED** |
+| Live Chipnet inclusion of this canonical fresh-category path | **OPEN** |
+| Recording, persistence, and durable reorg-safe wallet state | **OPEN** |
+| Spendability and Bob → Charles private transfer | **OPEN** |
+
+The [evidence page](/evidence/01-private-notes-without-a-global-pool/) records
+the exact settlement digest, the acceptance decomposition, and the claims this
+work does not make. The pinned `v0.4.4` public export includes a
+[reviewed Relation V6 boundary](https://github.com/casablanca-labs/proofnote/blob/v0.4.4/docs/relation-v6-import-acceptance.md)
+and supporting source. It deliberately does not publish the raw V6 artifact
+package, so that package cannot be independently reproduced from the public
+tree.
+
+## What Phase 3 produced
+
+The funded work did not follow the original diagram literally. That is a good
+outcome when implementation exposes a better question.
+
+The Recovery and beaconless-binding work led to authenticated Recovery V1. The
+wallet-and-chain milestone led to a stricter authority split: proof validity,
+chain validity, wallet acceptance, and wallet spendability are separate facts.
+The aggregation work clarified the aggregator's non-authoritative role. The
+proof-roadmap milestone progressed past a roadmap into frozen Relation V6
+semantics, real proof construction, an authenticated settlement gate, and a
+wallet acceptance path.
+
+This does not mean every literal acceptance criterion in the original funding
+request is complete. In particular, the current canonical fresh-category
+settlement has passed local conformance but has not established relay
+acceptance or live Chipnet inclusion. Recording and durable wallet lifecycle
+work also remain open. The mechanisms evolved, and the evidence should be read
+against the mechanism that was actually built.
+
+The useful change is that private conservation is no longer an open design
+question. Ordinary BCH UTXOs now serve as authoritative backing for the
+import/current-state acceptance path; the private relation proves hidden
+semantics and exact conservation; no global mutable private-value pool or
+trusted sequencing authority has been introduced; and the recipient can
+recover and independently accept the result at a point in time.
+
+## The payment problem behind the research
+
+Public blockchains are useful settlement rails, but they can turn routine
+payments into permanent business and personal intelligence. A vendor payment
+can expose counterparties and cadence. Payroll can reveal staffing and cash
+flow. Treasury movements can become a map for competitors, scammers, or anyone
+building a dossier. Rotating addresses helps at the edges; it does not erase a
+transaction graph.
+
+For exchanges, payment operators, and businesses using BCH as a settlement
+rail, that creates both operational risk and integration friction. The product
+direction is to replace a patchwork of address rotation, manual transaction
+shaping, custodial processors, and separate private ledgers with a
+non-custodial payment path that discloses only what settlement requires. In a
+usable system, aggregation can amortize coordination and verification while
+each wallet still decides what it owns from authenticated proof and chain
+truth. The operator assembles; it does not hold customer balances or define
+them by authority.
+
+The same issue is personal. Contractors should not have to publish their client
+list to receive payment. Employees and vendors should not automatically expose
+their financial graph to one another. Journalists, activists, cross-border
+recipients, political campaigns and donors—subject to all applicable reporting
+obligations—and citizens who simply value financial privacy have different
+risks and different legal duties. Privacy is not an exemption from those
+duties. It is a way to avoid broadcasting more than the transaction requires.
+
+Wealthy people and large organizations can often buy that separation through
+private banking, custodians, payment processors, multiple accounts or entities,
+professional treasury management, and specialized financial infrastructure.
+Many ordinary users cannot. Marginalized communities are not a single audience
+with a single experience, but financial exposure can carry disproportionate
+costs for some people within them.
+
+**The cost of financial transparency is not distributed equally.** A better
+default is disclosure proportional to the transaction.
+
+Proofnote is not delivering that default in production today. Public
+transaction shape, counts, fees, timing, BCH metadata, category lineage, and
+other settlement structure remain visible and can create correlation. The
+prototype does not demonstrate an achieved anonymity set. The current result
+shows that the private semantics can be authenticated without giving up BCH's
+UTXO authority; it does not show that the surrounding system has reached
+production privacy.
+
+## Aggregation without operator authority
+
+Commercially useful privacy cannot depend on every customer operating a prover
+or every business trusting the same coordinator with funds. Proofnote keeps
+aggregation because a common assembly path is how private activity can blend
+and expensive work can be shared. It constrains what that role means.
+
+An aggregator may assemble a transaction and coordinate proof production. It
+must not hold spend authority, decide protocol truth, maintain trusted private
+balances, assign durable user partitions, or become the party a recipient asks
+whether a note exists. The wallet authenticates the proof and BCH state for
+itself.
+
+The fallback is deliberately simple: a one-time exit key can authorize a
+transparent BCH spend without the aggregator or proof path. The public release
+contains the exact locking branch:
+
+<SourceFile
+  path="packages/protocol-runtime/src/cashassembly/apnt_created_note_seal_exit_branch_v0.casm"
+  lines="59-75"
+  lang="text"
+/>
+
+Taking that exit forfeits private-path shielding, and a multi-cell exit can
+publish common-input ownership. It is a non-custodial floor, not a privacy
+claim.
+
+## The remaining experiment
+
+Bob can recover the current fresh-category note candidates and accept them at
+an authenticated point-in-time snapshot. He cannot yet record them into
+durable wallet state, survive reorgs with correct persistent lifecycle updates,
+or spend them. Recovery is not spendability, and wallet acceptance is not
+recording.
+
+The target for the remaining funding period is therefore explicit:
+
+```text
+accepted note
+  → durable, reorg-safe wallet state
+  → spendability
+  → Bob privately sends to Charles
+  → Charles independently recovers and accepts
+```
+
+That is a target, not a guarantee. It also does not include a promised
+production deployment or a complete end-to-end APNT system. A successful run
+would answer the successive-owner half of the research question at prototype
+scale. A blocker would be published as a blocker.
+
+The community-funded groundwork has narrowed the remaining work from an
+open-ended architecture search to one bounded demonstration: can an accepted
+private note become durable, spendable wallet state and pass privately to the
+next owner without changing who holds authority? That is the next result worth
+publishing.
+
+---
+
+*Proofnote is Phase 3 work funded by the Bitcoin Cash community through
+[campaign #143](https://fundme.cash/campaign/143). The protocol is APNT,
+Aggregated Private Note Transfer. The source and public verification material
+are published at
+[github.com/casablanca-labs/proofnote](https://github.com/casablanca-labs/proofnote).*

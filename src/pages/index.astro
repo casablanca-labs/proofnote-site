@@ -1,0 +1,235 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import CellField from "../components/CellField.astro";
+import { fmtDate } from "../lib/date";
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const posts = (await getCollection("posts", (p) => p.data.published)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const [lead, ...rest] = posts;
+---
+
+<Base title="Proofnote — private notes on Bitcoin Cash">
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">Proofnote / APNT research</span>
+      <h1>Private payments without a global pool.</h1>
+      <p class="lede measure">
+        Proofnote asks whether ordinary BCH UTXOs can remain authoritative single-use
+        state while ownership, value, and payment linkage stay private. The
+        import-to-private-acceptance path now works at prototype scale. Successive
+        private ownership is the next experiment.
+      </p>
+    </div>
+    <div class="mark"><div class="wrap">
+      <CellField count={288} lit={22} seed="apnt-index" cols={48} />
+    </div></div>
+  </section>
+
+  <section class="status wrap" aria-labelledby="status-heading">
+    <div class="status-head">
+      <div>
+        <span class="eyebrow">Research status</span>
+        <h2 id="status-heading">One half demonstrated. One half still open.</h2>
+      </div>
+      <a class="status-link mono" href={`${base}/evidence/`}>Read the evidence →</a>
+    </div>
+
+    <div class="status-grid">
+      <div class="status-item">
+        <span class="verdict pass mono">Established</span>
+        <h3>Import → private acceptance</h3>
+        <p>Exact conservation, real proof authentication, Recovery V1, and point-in-time wallet acceptance.</p>
+      </div>
+      <div class="status-item">
+        <span class="verdict pending mono">Open</span>
+        <h3>Durable wallet state</h3>
+        <p>Recording, persistence, reorg-safe lifecycle handling, and spendability are not established.</p>
+      </div>
+      <div class="status-item">
+        <span class="verdict pending mono">Next experiment</span>
+        <h3>Successive ownership</h3>
+        <p>Bob privately sends the accepted note to Charles; Charles independently recovers and accepts.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    {
+      lead && (
+        <a href={`${base}/posts/${lead.id}/`} class="lead card" aria-label={`Read ${lead.data.title}`}>
+          <span class="eyebrow">{fmtDate(lead.data.date)}</span>
+          <h2>{lead.data.title}</h2>
+          <p class="muted">{lead.data.summary}</p>
+        </a>
+      )
+    }
+
+    {
+      rest.length > 0 && (
+        <div class="grid">
+          {rest.map((p) => (
+            <a href={`${base}/posts/${p.id}/`} class="card">
+              <span class="eyebrow">{fmtDate(p.data.date)}</span>
+              <h3>{p.data.title}</h3>
+              <p class="muted">{p.data.summary}</p>
+            </a>
+          ))}
+        </div>
+      )
+    }
+
+    {posts.length === 0 && <p class="muted">No posts are published yet.</p>}
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-top: clamp(3.5rem, 9vw, 7rem);
+  }
+
+  .hero h1 {
+    margin-block: 0 1.5rem;
+    max-width: 20ch;
+  }
+
+  .mark {
+    margin-top: clamp(3rem, 7vw, 5rem);
+    padding-block: clamp(2rem, 5vw, 3.25rem);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .card {
+    display: block;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .card:hover {
+    background: var(--surface-hi);
+    border-color: var(--rule-hi);
+  }
+
+  .card h2,
+  .card h3 {
+    margin-block: 0 0.75rem;
+  }
+
+  .card p {
+    margin: 0;
+    max-width: 62ch;
+  }
+
+  .lead {
+    margin-top: clamp(3rem, 7vw, 5rem);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: 1px;
+    margin-top: 1px;
+  }
+
+  .status {
+    padding-top: clamp(3rem, 7vw, 5rem);
+  }
+
+  .status-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .status-head h2 {
+    max-width: 30ch;
+  }
+
+  .status-link {
+    color: var(--muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .status-link:hover {
+    color: var(--text);
+  }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--rule);
+    background: var(--surface);
+  }
+
+  .status-item {
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    border-right: 1px solid var(--rule);
+  }
+
+  .status-item:last-child {
+    border-right: 0;
+  }
+
+  .status-item h3 {
+    margin-block: 0.85rem 0.6rem;
+  }
+
+  .status-item p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .verdict {
+    font-size: 0.67rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .verdict::before {
+    content: "● ";
+  }
+
+  .verdict.pass {
+    color: var(--pass);
+  }
+
+  .verdict.pending {
+    color: var(--pending);
+  }
+
+  @media (max-width: 48rem) {
+    .status-head {
+      display: block;
+    }
+
+    .status-link {
+      display: inline-block;
+      margin-top: 1.25rem;
+    }
+
+    .status-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .status-item {
+      border-right: 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .status-item:last-child {
+      border-bottom: 0;
+    }
+  }
+</style>

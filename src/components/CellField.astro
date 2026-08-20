@@ -1,0 +1,93 @@
+---
+/**
+ * The identity mark: a field of equal cells.
+ *
+ * This is the protocol's own thesis rendered literally. Every cell is the same
+ * size and the same value; a few are lit because they back a note; and there
+ * is deliberately NO visual grouping, because which cells belong together is
+ * exactly what the design hides. A reader who looks for the pattern and fails
+ * to find one has understood the point.
+ *
+ * Deterministic — the lit set comes from a seeded hash of `seed`, so the same
+ * post renders the same field on every build. No randomness, no animation, no
+ * script.
+ */
+interface Props {
+  /** Total cells drawn. */
+  count?: number;
+  /** How many are lit. */
+  lit?: number;
+  /** Any string; same seed, same field. */
+  seed?: string;
+  cols?: number;
+  label?: string;
+}
+
+const { count = 288, lit = 34, seed = "apnt", cols = 48, label } = Astro.props;
+
+// xorshift over an FNV-1a seed. Small, deterministic, no dependency.
+let h = 2166136261;
+for (const ch of seed) {
+  h ^= ch.charCodeAt(0);
+  h = Math.imul(h, 16777619);
+}
+const next = () => {
+  h ^= h << 13;
+  h ^= h >>> 17;
+  h ^= h << 5;
+  return ((h >>> 0) % 100000) / 100000;
+};
+
+const chosen = new Set<number>();
+while (chosen.size < Math.min(lit, count)) chosen.add(Math.floor(next() * count));
+
+const rows = Math.ceil(count / cols);
+const GAP = 4;
+const S = 7;
+const W = cols * (S + GAP) - GAP;
+const H = rows * (S + GAP) - GAP;
+---
+
+<figure class="field">
+  <svg viewBox={`0 0 ${W} ${H}`} role={label ? "img" : "presentation"} aria-hidden={label ? undefined : "true"}>
+    {label && <title>{label}</title>}
+    {
+      Array.from({ length: count }, (_, i) => {
+        const x = (i % cols) * (S + GAP);
+        const y = Math.floor(i / cols) * (S + GAP);
+        const on = chosen.has(i);
+        return (
+          <rect
+            x={x}
+            y={y}
+            width={S}
+            height={S}
+            fill={on ? "var(--pass)" : "none"}
+            stroke={on ? "none" : "currentColor"}
+            stroke-width="1"
+            opacity={on ? 0.55 : 0.11}
+          />
+        );
+      })
+    }
+  </svg>
+  {label && <figcaption class="eyebrow">{label}</figcaption>}
+</figure>
+
+<style>
+  .field {
+    margin: 0;
+    color: var(--text);
+  }
+
+  .field svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  figcaption {
+    margin-top: 1.25rem;
+    margin-bottom: 0;
+  }
+</style>

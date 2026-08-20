@@ -1,0 +1,136 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import CellField from "../../components/CellField.astro";
+import { fmtDate } from "../../lib/date";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", (p) => p.data.published);
+  const evidence = await getCollection("evidence");
+
+  return posts.map((post) => {
+    // Every published post must have an evidence page. This is the site's
+    // version of the honesty gate: a post that cannot show its working does
+    // not build.
+    const ev = evidence.find((e) => e.data.post === post.id);
+    if (!ev) {
+      throw new Error(
+        `Post "${post.id}" is published but has no evidence page. ` +
+          `Add src/content/evidence/${post.id}.md with post: "${post.id}".`,
+      );
+    }
+    return { params: { slug: post.id }, props: { post, ev } };
+  });
+}
+
+const { post, ev } = Astro.props;
+const { Content } = await render(post);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+---
+
+<Base title={`${post.data.title} — Proofnote`} description={post.data.summary}>
+  <article>
+    <header class="head wrap">
+      <span class="eyebrow">{fmtDate(post.data.date)}</span>
+      <h1 class="measure">{post.data.title}</h1>
+      <p class="lede measure">{post.data.summary}</p>
+
+      <div class="meta">
+        <a href={`${base}/evidence/${ev.id}/`} class="chip mono">
+          Evidence — reviewed {fmtDate(ev.data.reviewed)}
+        </a>
+        {
+          post.data.canonical && (
+            <a href={post.data.canonical} class="chip mono" rel="noopener">
+              Discussion ↗
+            </a>
+          )
+        }
+      </div>
+    </header>
+
+    <div class="mark wrap">
+      <CellField count={192} lit={16} seed={post.id} cols={48} />
+    </div>
+
+    <div class="wrap">
+      <div class="prose measure">
+        <Content />
+      </div>
+
+      <aside class="prose measure verify">
+        <p class="eyebrow">Check the evidence</p>
+        <p class="muted">
+          The <a href={`${base}/evidence/${ev.id}/`}>evidence page</a> separates current
+          milestone certification, material already reproducible from the public
+          release, and target work that is not yet a capability.
+        </p>
+      </aside>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .head {
+    padding-top: clamp(3rem, 7vw, 5.5rem);
+  }
+
+  .head h1 {
+    margin-bottom: 1.25rem;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 2rem;
+  }
+
+  .chip {
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--rule-hi);
+    padding: 0.45rem 0.8rem;
+  }
+
+  .chip:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .mark {
+    margin-block: clamp(2.5rem, 6vw, 3.5rem);
+    padding-block: clamp(1.75rem, 4vw, 2.5rem);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .prose {
+    padding-top: 1rem;
+  }
+
+  .prose :global(img) {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Markdown tables are wide; let them scroll inside their own box. */
+  .prose :global(table) {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .verify {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .verify p:last-child {
+    margin-bottom: 0;
+  }
+</style>

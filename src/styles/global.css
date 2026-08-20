@@ -1,0 +1,316 @@
+/*
+ * Proofnote — visual identity, derived from APNT's protocol structure.
+ *
+ * Derived from what the protocol actually is rather than from another
+ * protocol's website:
+ *
+ *   - Value is carried by EQUAL DISCRETE CELLS, so the visual language is a
+ *     grid of identical units, never a gradient or a flow.
+ *   - Correctness here is a matter of exact bytes, so display type is
+ *     MONOSPACE. Headlines read as a spec, not as a campaign.
+ *   - Colour is reserved for VERIFICATION STATE. If something on this site is
+ *     coloured, it is telling you whether a claim was checked. Nothing is
+ *     coloured for decoration.
+ *
+ * Everything is self-contained: no font requests, no analytics, no third-party
+ * anything. A privacy project should not ship a site that phones home.
+ */
+
+:root {
+  /* Cool near-black; the neutrals carry a slight blue cast so the one warm
+     accent (pending) reads clearly against them. */
+  --bg: #08090b;
+  --surface: #0c0e11;
+  --surface-hi: #12151a;
+  --text: #e8eaed;
+  --muted: #868d99;
+  --dim: #464d59;
+
+  --rule: rgba(232, 234, 237, 0.08);
+  --rule-hi: rgba(232, 234, 237, 0.16);
+
+  /* Verification states — the only colours on the site. */
+  --pass: #5fd0a0;
+  --pending: #d9a441;
+  --fail: #e0736f;
+
+  --mono:
+    ui-monospace, "SF Mono", "Menlo", "Cascadia Mono", "Roboto Mono", monospace;
+  --sans:
+    system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+
+  --measure: 44rem;
+  --gutter: clamp(1.25rem, 4vw, 3rem);
+  --cell: 9px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------------------------------------------------------------- layout */
+
+.wrap {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.measure {
+  max-width: var(--measure);
+}
+
+/* ------------------------------------------------------------------ type */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--mono);
+  font-weight: 500;
+  margin: 0;
+  color: var(--text);
+}
+
+/* Display type is mono and set at normal tracking. Tight negative tracking on
+   a grotesque is the house style of every other protocol site; this reads as
+   a specification instead. */
+h1 {
+  font-size: clamp(1.75rem, 3.6vw, 2.6rem);
+  line-height: 1.18;
+  letter-spacing: -0.015em;
+}
+
+h2 {
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-block: 0;
+}
+
+/* Section dividers belong to running prose, not to cards or headers. */
+.prose h2 {
+  margin-block: 3.5rem 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+}
+
+.prose h3 {
+  margin-block: 2.25rem 0.65rem;
+}
+
+h3 {
+  font-size: 1.0625rem;
+  line-height: 1.4;
+  margin-block: 0;
+  color: var(--text);
+}
+
+p,
+ul,
+ol {
+  margin-block: 0 1.2rem;
+}
+
+/*
+ * Links are undecorated by default so chrome (nav, cards, chips) stays clean;
+ * running prose opts in via .prose, where an underline actually helps.
+ */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--pass);
+  outline-offset: 4px;
+}
+
+.prose a,
+.lede a,
+.foot a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--dim);
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color 0.12s ease;
+}
+
+.prose a:hover,
+.lede a:hover,
+.foot a:hover {
+  text-decoration-color: var(--pass);
+}
+
+strong {
+  font-weight: 600;
+  color: #fff;
+}
+
+blockquote {
+  margin: 1.75rem 0;
+  padding: 0.15rem 0 0.15rem 1.25rem;
+  border-left: 2px solid var(--rule-hi);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin-block: 3rem;
+}
+
+/*
+ * Section label. Bracketed rather than slashed — this is spec notation, and
+ * the brackets read as "a field with a value".
+ */
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  display: inline-block;
+  margin-bottom: 1.25rem;
+}
+
+.eyebrow::before {
+  content: "[ ";
+  color: var(--dim);
+}
+
+.eyebrow::after {
+  content: " ]";
+  color: var(--dim);
+}
+
+.lede {
+  font-size: 1.1rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------------ code */
+
+code {
+  font-family: var(--mono);
+  font-size: 0.855em;
+  color: var(--text);
+  background: var(--surface-hi);
+  padding: 0.1em 0.34em;
+  border-radius: 2px;
+}
+
+pre {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  background: var(--surface) !important;
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--rule-hi);
+  padding: 1.1rem 1.2rem;
+  margin-block: 1.5rem;
+  /* Hex dumps and opcode listings scroll inside their own box; the page body
+     never scrolls sideways. */
+  overflow-x: auto;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* --------------------------------------------------------------- tables */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.855rem;
+}
+
+th {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--dim);
+  font-weight: 500;
+  text-align: left;
+  padding: 0.6rem 0.9rem 0.6rem 0;
+  border-bottom: 1px solid var(--rule-hi);
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.75rem 0.9rem 0.75rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+td:first-child {
+  color: var(--text);
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Evidence prose uses bold for claims as well as verdicts. Keep table emphasis
+   neutral; explicit status components are the only elements that carry state
+   colour. */
+td strong {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------- utilities */
+
+.mono {
+  font-family: var(--mono);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

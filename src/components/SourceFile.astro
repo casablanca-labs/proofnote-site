@@ -1,0 +1,134 @@
+---
+/**
+ * Transcludes a real file from the repository at build time.
+ *
+ * The site and public source are separate repositories. A quotation pasted
+ * into prose is a claim about a file; this reads a pinned source checkout. If
+ * the path is wrong or the line range has drifted past the end of the file,
+ * the build throws rather than rendering a stale excerpt — so a broken
+ * citation is a build failure, not something a reader discovers.
+ *
+ *   <SourceFile
+ *     path="packages/protocol-runtime/src/cashassembly/apnt_created_note_seal_v0.casm"
+ *     lines="72-86"
+ *     lang="text"
+ *   />
+ */
+import fs from "node:fs";
+import path from "node:path";
+import { Code } from "astro:components";
+
+interface Props {
+  /** Repo-relative path, from the public Proofnote repository root. */
+  path: string;
+  /** Inclusive 1-indexed range, e.g. "72-86". Omit for the whole file. */
+  lines?: string;
+  lang?: "text";
+  /** Commit-ish used to build the "view source" permalink. */
+  rev?: string;
+}
+
+/*
+ * The source repository is a separate checkout, not this repo. CI clones
+ * Proofnote at a PINNED TAG before building, so every transcluded
+ * excerpt and every permalink names the exact release the page describes — a
+ * later release cannot silently change what a published page appears to quote.
+ *
+ *   PROOFNOTE_SOURCE_ROOT  where the checkout lives   (default: ../proofnote)
+ *   PROOFNOTE_SOURCE_REF   the tag it is pinned at     (default: v0.4.4)
+ *
+ * APNT_SOURCE_ROOT and APNT_SOURCE_REF remain accepted as local compatibility
+ * aliases; APNT is the protocol name, not the public repository identity.
+ */
+const REPO_ROOT = path.resolve(
+  process.env.PROOFNOTE_SOURCE_ROOT ??
+    process.env.APNT_SOURCE_ROOT ??
+    path.join(process.cwd(), "..", "proofnote"),
+);
+const REPO_URL = "https://github.com/casablanca-labs/proofnote";
+const SOURCE_REF =
+  process.env.PROOFNOTE_SOURCE_REF ?? process.env.APNT_SOURCE_REF ?? "v0.4.4";
+
+const { path: relPath, lines, lang = "text", rev = SOURCE_REF } = Astro.props;
+
+const abs = path.join(REPO_ROOT, relPath);
+
+if (!fs.existsSync(abs)) {
+  throw new Error(
+    `SourceFile: ${relPath} does not exist (resolved ${abs}). ` +
+      `A citation that points at nothing must not render. ` +
+      `Is the public Proofnote checkout present at ${REPO_ROOT}? ` +
+      `Set PROOFNOTE_SOURCE_ROOT if not.`,
+  );
+}
+
+const all = fs.readFileSync(abs, "utf8").split("\n");
+
+let from = 1;
+let to = all.length;
+if (lines) {
+  const m = /^(\d+)(?:-(\d+))?$/.exec(lines.trim());
+  if (!m) throw new Error(`SourceFile: bad lines "${lines}" for ${relPath}`);
+  from = Number(m[1]);
+  to = m[2] ? Number(m[2]) : from;
+  if (to > all.length) {
+    throw new Error(
+      `SourceFile: ${relPath} has ${all.length} lines; asked for ${from}-${to}. ` +
+        `The file moved under the citation.`,
+    );
+  }
+}
+
+const excerpt = all.slice(from - 1, to).join("\n");
+
+const permalink = `${REPO_URL}/blob/${rev}/${relPath}${lines ? `#L${from}-L${to}` : ""}`;
+const shown = path.basename(relPath);
+---
+
+<figure class="src">
+  <figcaption>
+    <a href={permalink} class="path mono">{shown}{lines && <span class="rng">:{from}–{to}</span>}</a>
+  </figcaption>
+  <div class="code">
+    <Code code={excerpt} lang={lang} theme="css-variables" />
+  </div>
+</figure>
+
+<style>
+  .src {
+    margin-block: 1.75rem;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+  }
+
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--rule);
+    padding: 0.55rem 1rem;
+  }
+
+  .path {
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    border-bottom: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .path:hover {
+    color: var(--text);
+  }
+
+  .rng {
+    color: var(--dim);
+  }
+
+  .code :global(pre) {
+    margin: 0;
+    border: 0;
+    background: transparent !important;
+  }
+</style>

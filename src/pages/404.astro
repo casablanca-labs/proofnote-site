@@ -1,0 +1,36 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Page not found — Proofnote" description="The requested Proofnote page does not exist." noindex>
+  <section class="wrap not-found">
+    <span class="eyebrow">404 / no state transition</span>
+    <h1>That page does not exist.</h1>
+    <p class="lede measure">
+      The URL did not resolve to a published Proofnote update or evidence page.
+    </p>
+    <a href="/" class="back mono">Return to the research index →</a>
+  </section>
+</Base>
+
+<style>
+  .not-found {
+    padding-top: clamp(4rem, 12vw, 9rem);
+    padding-bottom: 4rem;
+  }
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+
+  .back {
+    display: inline-block;
+    margin-top: 1.5rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .back:hover {
+    color: var(--text);
+  }
+</style>

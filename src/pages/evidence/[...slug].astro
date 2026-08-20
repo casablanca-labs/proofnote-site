@@ -1,0 +1,124 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { fmtDate, daysSince } from "../../lib/date";
+
+export async function getStaticPaths() {
+  // An evidence page is the working half of a post. Publishing it while the
+  // post is still a draft ships the disclosures without the narrative that
+  // frames them, and does it without the operator sign-off the honesty gate
+  // requires. So evidence follows its post's `published` flag, not its own.
+  const published = new Set(
+    (await getCollection("posts", (p) => p.data.published)).map((p) => p.id),
+  );
+  const evidence = (await getCollection("evidence")).filter((e) =>
+    published.has(e.data.post),
+  );
+  // Only published posts have a page to link to; an unpublished post would
+  // leave a dead "← The post" link, which the link check correctly rejects.
+  const posts = await getCollection("posts", (p) => p.data.published);
+  return evidence.map((ev) => ({
+    params: { slug: ev.id },
+    props: { ev, post: posts.find((p) => p.id === ev.data.post) },
+  }));
+}
+
+const { ev, post } = Astro.props;
+const { Content } = await render(ev);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+// Evidence boundaries go stale. Rather than imply the canonical proof was
+// re-run, show when this publication boundary was last reviewed.
+const days = daysSince(ev.data.reviewed);
+---
+
+<Base title={`${ev.data.title} — Proofnote`}>
+  <article>
+    <header class="head wrap">
+      <span class="eyebrow">Evidence</span>
+      <h1 class="measure">{ev.data.title}</h1>
+      <p class="lede measure">
+        Current certification, independently reproducible public evidence, explicit
+        non-claims, and the date this boundary was last reviewed.
+      </p>
+      <div class="meta">
+        <span class="chip mono" data-stale={days > 14 ? "true" : "false"}>
+          Boundary reviewed {fmtDate(ev.data.reviewed)}
+          {days > 0 && ` — ${days}d ago`}
+        </span>
+        {
+          post && (
+            <a href={`${base}/posts/${post.id}/`} class="chip mono">
+              ← The post
+            </a>
+          )
+        }
+      </div>
+    </header>
+
+    <div class="wrap">
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .head {
+    padding-top: clamp(3rem, 7vw, 5.5rem);
+  }
+
+  .head h1 {
+    margin-bottom: 1.25rem;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 2rem;
+  }
+
+  .chip {
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--rule-hi);
+    padding: 0.45rem 0.8rem;
+  }
+
+  .chip[data-stale="true"] {
+    color: var(--pending);
+    border-color: color-mix(in srgb, var(--pending) 45%, transparent);
+  }
+
+  a.chip:hover {
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .prose {
+    margin-top: 3rem;
+  }
+
+  /* Evidence tables are the point of this page, so they get the full width
+     rather than the prose measure. */
+  .prose :global(table) {
+    display: block;
+    overflow-x: auto;
+    font-size: 0.82rem;
+  }
+
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(blockquote) {
+    max-width: var(--measure);
+  }
+
+  .prose :global(h2) {
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+  }
+</style>

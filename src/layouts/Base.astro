@@ -1,0 +1,162 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = "Proofnote publishes APNT research and evidence for private note transfer on Bitcoin Cash. Research software; not production.",
+  noindex = false,
+} = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const origin = Astro.site ?? Astro.url.origin;
+const canonical = new URL(Astro.url.pathname, origin);
+const rssUrl = new URL(`${base}/rss.xml`, origin);
+
+const nav = [
+  { href: `${base}/`, label: "Home" },
+  { href: `${base}/evidence/`, label: "Evidence" },
+  { href: "https://github.com/casablanca-labs/proofnote", label: "GitHub", ext: true },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Proofnote" />
+    {!noindex && <meta property="og:url" content={canonical} />}
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#08090b" />
+    <meta name="color-scheme" content="dark" />
+    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
+    <link rel="alternate" type="application/rss+xml" title="Proofnote" href={rssUrl} />
+  </head>
+  <body>
+    <header class="nav">
+      <div class="wrap navrow">
+        <a href={`${base}/`} class="brand mono">PROOFNOTE</a>
+        <nav>
+          {
+            nav.map((n) => (
+              <a href={n.href} rel={n.ext ? "noopener" : undefined}>
+                {n.label}
+                {n.ext && <span class="ext">↗</span>}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="foot">
+      <div class="wrap">
+        <p class="eyebrow">Non-claims</p>
+        <p class="muted small">
+          Research software, not a production privacy product. The current path does not
+          establish live inclusion, durable wallet state, spendability, successive-owner
+          transfer, or achieved anonymity. Public transaction shape, counts, fees,
+          timing, BCH metadata, and category lineage remain correlation surfaces.
+        </p>
+        <p class="muted small">
+          Proofnote publishes APNT under MIT at
+          <a href="https://github.com/casablanca-labs/proofnote">github.com/casablanca-labs/proofnote</a>.
+          Phase 3 was funded by the Bitcoin Cash community via
+          <a href="https://fundme.cash/campaign/143">campaign #143</a>.
+        </p>
+      </div>
+    </footer>
+
+    <style>
+      .nav {
+        border-bottom: 1px solid var(--rule);
+        position: sticky;
+        top: 0;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(10px);
+        z-index: 10;
+      }
+
+      .navrow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+        height: 3.5rem;
+      }
+
+      .brand {
+        font-size: 0.85rem;
+        letter-spacing: 0.14em;
+        border-bottom: 0;
+        color: var(--text);
+      }
+
+      .nav nav {
+        display: flex;
+        gap: 1.6rem;
+      }
+
+      .nav nav a {
+        font-size: 0.85rem;
+        color: var(--muted);
+        border-bottom: 0;
+      }
+
+      .nav nav a:hover {
+        color: var(--text);
+      }
+
+      .ext {
+        font-size: 0.7em;
+        margin-left: 0.25em;
+        color: var(--dim);
+      }
+
+      @media (max-width: 36rem) {
+        .navrow {
+          gap: 1rem;
+        }
+
+        .nav nav {
+          gap: 0.8rem;
+        }
+
+        .nav nav a {
+          font-size: 0.72rem;
+        }
+      }
+
+      main {
+        min-height: 60vh;
+      }
+
+      .foot {
+        border-top: 1px solid var(--rule);
+        margin-top: 6rem;
+        padding-block: 3rem 4rem;
+      }
+
+      .foot .small {
+        font-size: 0.8rem;
+        max-width: var(--measure);
+        line-height: 1.55;
+      }
+    </style>
+  </body>
+</html>
