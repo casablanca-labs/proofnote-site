@@ -14,6 +14,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DIST = fileURLToPath(new URL("../dist/", import.meta.url));
+const SOURCE = fileURLToPath(new URL("../src/", import.meta.url));
 const skipExternal = process.argv.includes("--skip-external");
 const siteOrigin = new URL(
   process.env.SITE_ORIGIN ?? "https://proofnote.cash",
@@ -59,6 +60,23 @@ for (const f of files) {
 }
 
 const problems = [];
+
+const walkSource = async (dir) => {
+  const out = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const candidate = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...(await walkSource(candidate)));
+    else out.push(candidate);
+  }
+  return out;
+};
+
+for (const sourceFile of await walkSource(SOURCE)) {
+  const source = await readFile(sourceFile, "utf8");
+  if (/github\.com\/casablanca-labs\/proofnote\/(?:blob|tree)\/(?:main|v\d[^/]*)\//.test(source)) {
+    problems.push(`mutable Proofnote source ref  (in ${path.relative(SOURCE, sourceFile)})`);
+  }
+}
 
 for (const [href, from] of internal) {
   // Every internal href is site-root-relative (there is no base path), so it

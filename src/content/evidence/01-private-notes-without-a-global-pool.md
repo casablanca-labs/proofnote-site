@@ -86,13 +86,13 @@ acceptance path. It does not close successive ownership.
 The `v0.4.4` public release contains the reviewed current boundary and material
 that supports the architecture and earlier import history:
 
-- [the Relation V6 import-acceptance boundary](https://github.com/casablanca-labs/proofnote/blob/v0.4.4/docs/relation-v6-import-acceptance.md), including its explicit raw-package evidence boundary and non-claims;
-- [live settlement evidence](https://github.com/casablanca-labs/proofnote/blob/v0.4.4/docs/live-settlement-evidence.md) for an earlier chain-confirmed Chipnet import, including an independent raw Electrum recipe and its explicit non-claims;
-- [the seal](https://github.com/casablanca-labs/proofnote/blob/v0.4.4/docs/the-seal.md), including the non-custodial exit branch and its privacy cost;
-- [trust anchors](https://github.com/casablanca-labs/proofnote/blob/v0.4.4/docs/trust-anchors.md) and committed proof fixtures for the release's published verifier surfaces;
-- [proof acceptance requirements](https://github.com/casablanca-labs/proofnote/blob/v0.4.4/spec/apnt-proof-acceptance.md);
-- [chain-evidence requirements](https://github.com/casablanca-labs/proofnote/blob/v0.4.4/spec/apnt-chain-evidence.md); and
-- the generated [capability index](https://github.com/casablanca-labs/proofnote/blob/v0.4.4/capabilities.json), which records what every public verifier establishes and does not establish.
+- [the Relation V6 import-acceptance boundary](https://github.com/casablanca-labs/proofnote/blob/0578955eb53cfc59aafa21251a5d71a663a33ec6/docs/relation-v6-import-acceptance.md), including its explicit raw-package evidence boundary and non-claims;
+- [live settlement evidence](https://github.com/casablanca-labs/proofnote/blob/0578955eb53cfc59aafa21251a5d71a663a33ec6/docs/live-settlement-evidence.md) for an earlier chain-confirmed Chipnet import, including an independent raw Electrum recipe and its explicit non-claims;
+- [the seal](https://github.com/casablanca-labs/proofnote/blob/0578955eb53cfc59aafa21251a5d71a663a33ec6/docs/the-seal.md), including the non-custodial exit branch and its privacy cost;
+- [trust anchors](https://github.com/casablanca-labs/proofnote/blob/0578955eb53cfc59aafa21251a5d71a663a33ec6/docs/trust-anchors.md) and committed proof fixtures for the release's published verifier surfaces;
+- [proof acceptance requirements](https://github.com/casablanca-labs/proofnote/blob/0578955eb53cfc59aafa21251a5d71a663a33ec6/spec/apnt-proof-acceptance.md);
+- [chain-evidence requirements](https://github.com/casablanca-labs/proofnote/blob/0578955eb53cfc59aafa21251a5d71a663a33ec6/spec/apnt-chain-evidence.md); and
+- the generated [capability index](https://github.com/casablanca-labs/proofnote/blob/0578955eb53cfc59aafa21251a5d71a663a33ec6/capabilities.json), which records what every public verifier establishes and does not establish.
 
 The public release preserves APNT, BCH Cloak, `bchcloak:`, package names,
 relation names, statement magics, and commitment-domain strings where they are
