@@ -38,7 +38,7 @@ successive private transfer.
 
 | artifact | size | state | identity / limit |
 |---|---:|---|---|
-| Confirmed V4 Chipnet reference transaction | **99,835 bytes** | **CONFIRMED** | txid [`8510edd3b26e85aaf401d32873cdd035cd3f0cfe0a233f682597145a1bfea6f4`](https://chipnet.imaginary.cash/tx/8510edd3b26e85aaf401d32873cdd035cd3f0cfe0a233f682597145a1bfea6f4) |
+| Confirmed V4 Chipnet reference transaction | **99,835 bytes** | **CONFIRMED** | txid [`8510edd3b26e85aaf401d32873cdd035cd3f0cfe0a233f682597145a1bfea6f4`](https://github.com/casablanca-labs/proofnote/blob/07860d5e929d7df0462beef7671cd7a1d108d22b/docs/live-settlement-evidence.md) |
 | Private candidate-3 fixture | **99,500 bytes** | **PRIVATE FIXTURE** | Not broadcast; not the confirmed transaction. |
 | Retained Relation V6 settlement candidate | **99,950 bytes** | **UNBROADCAST** | SHA-256 `2ae95c94910ee9adb49e37a668871b9913231da6f513f164d7649fe36ef80770`; 12 inputs / 21 outputs; 50-byte standard-size margin; local BCH-2026 consensus and standard VMs PASS. |
 
