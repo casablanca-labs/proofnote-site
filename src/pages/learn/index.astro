@@ -1,10 +1,12 @@
 ---
 import Base from "../../layouts/Base.astro";
 
-const sourceCommit = "07860d5e929d7df0462beef7671cd7a1d108d22b";
+const sourceCommit = "7dea87828cd25f572c3444e4a205b8f012d02e60";
 const sourceShort = sourceCommit.slice(0, 12);
 const repo = "https://github.com/casablanca-labs/proofnote";
 const source = `${repo}/tree/${sourceCommit}`;
+const browserVerifier = "/verify/browser/";
+const browserArtifactSha256 = "22ad37979c666e39f9f0ee6567b00901b315e155918ae46fc5cf059e45b8a95a";
 
 const startCommands = `git clone https://github.com/casablanca-labs/proofnote.git
 cd proofnote
@@ -16,71 +18,87 @@ node examples/conformance.mjs
 node verify.mjs list
 node verify.mjs explain verify-a-proof`;
 
-const verifyPrompt = `Work only from a clean clone of casablanca-labs/proofnote at commit ${sourceCommit}.
+const verifyPrompt = `Audit the released verifier.
 
-1. Confirm HEAD equals that commit and report whether the checkout is clean.
-2. Read examples/01-verify-a-proof/README.md and example.json.
-3. Run the documented positive verifier and require exit 0.
-4. Run --tamper-settlement and require PAIRING_REJECTED with exit 3.
-5. Run examples/conformance.mjs and report its runnable and blocked examples.
-6. Explain what the proof run establishes and every listed non-claim.
+Work only from a clean clone of casablanca-labs/proofnote at commit ${sourceCommit}.
 
-Do not use private Proofnote repositories. Do not contact Chipnet. Do not claim CashVM execution, chain inclusion, wallet acceptance, or successive transfer.`;
+Preflight: require Node.js >=20.6.0, confirm HEAD equals the commit, and confirm the checkout is clean.
 
-const cashVmPrompt = `Start from casablanca-labs/proofnote commit ${sourceCommit}. Build a local-only educational lab in a new branch; do not edit released evidence or claim the lab is a released Proofnote capability.
+1. Read examples/01-verify-a-proof/README.md and example.json.
+2. Run node examples/01-verify-a-proof/run.mjs; require exit 0.
+3. Run node examples/01-verify-a-proof/run.mjs --tamper-settlement; require exit 3 and PAIRING_REJECTED.
+4. Run node examples/conformance.mjs, node verify.mjs list, and node verify.mjs explain verify-a-proof.
+5. Report the exact evidence identities, positive result, negative result, and every stated non-claim.
 
-Target: examples/02-simulate-cashvm using @bitauth/libauth.
+Use no private repository or network. Do not claim CashVM execution, BCH validation or inclusion, wallet acceptance, spendability, privacy, or successive transfer.`;
 
-1. Inventory the published CashAssembly sources, settlement-authorization covenant bytecode fixture, public transition vectors, and verification non-claims.
-2. Pin the exact Libauth version you use and document the BCH VM rules it selects.
-3. Construct a deterministic unsigned transaction and matching source outputs using public fixtures only.
-4. Evaluate it locally in CashVM with network access disabled.
-5. Add one passing case and tamper cases for the settlement projection, source output, and locking bytecode.
-6. Print transaction size, VM result, and the exact reason each tamper fails.
-7. Add a machine-graded example.json, expected output, README, and conformance entry.
+const cashVmPrompt = `Build a local settlement-authorization CashVM example.
 
-Stop if a private witness, wallet key, funding UTXO, dependency/lockfile expansion, or unsupported protocol assumption is required. Return the diff and test evidence; do not fund, sign, or broadcast.`;
+Start from casablanca-labs/proofnote commit ${sourceCommit} in a new branch.
 
-const chipnetPrompt = `Given a reviewed, passing local CashVM example derived from casablanca-labs/proofnote commit ${sourceCommit}, prepare—but do not broadcast—a Chipnet continuation packet.
+This task is explicitly authorized to add only @bitauth/libauth@3.1.0-next.8 and its deterministic pnpm-lock.yaml closure (npm integrity sha512-Pm+Ju+YP3JeBLLTiVrBnia2wwE4G17r4XqpvPRMcklElJTe8J6x3JgKRg1by0Xm3ZY6UFxACkEAoSA+x419/zA==). Do not add, remove, or upgrade any other dependency. The example must execute with network access denied after installation.
 
-1. Re-run the local positive and tamper cases at the exact source commit.
-2. Rebuild the unsigned transaction for Chipnet and identify every source output it requires.
-3. Report serialized bytes, consensus/standard VM results, expected fee, and all public metadata or linkage surfaces.
-4. Keep funding selection, private keys, signing, and broadcast outside the code and report.
-5. Produce an operator checklist with separate gates for tBCH funding, signing, pre-broadcast review, broadcast, and post-broadcast chain attestation.
+Target: examples/06-simulate-settlement-authorization-cashvm. Examples 02 through 05 are reserved by the released developer journey. Do not edit released evidence.
 
-Stop before using tBCH, a wallet secret, or a network broadcast. Ask the operator for explicit authority at each of those boundaries.`;
+1. Inventory the published public transition vectors, CashAssembly sources, and settlement-authorization bytecode fixture.
+2. Reconstruct a deterministic synthetic unsigned transaction and its source outputs solely from a declared public vector. Record every input digest.
+3. Evaluate the covenant with createVirtualMachineBch2026(false), Libauth's BCH_2026_05 consensus instruction set. Report createVirtualMachineBch2026(true) standard-policy evaluation separately.
+4. Add a passing case plus deterministic tampering of the projection commitment, one source output, and locking bytecode. Print byte size, VM profile, verdict, raw VM error or top-stack state, and the application-level reason for each failure.
+5. Add README, runner, expected output, example.json, and a conformance entry. Require pnpm install --frozen-lockfile and deny network during conformance.
+
+This establishes only local CashVM evaluation of the frozen settlement-projection covenant over a synthetic public fixture. It does not establish Groth16 execution in CashVM, chain inclusion, funding, signing, wallet acceptance, privacy, or successive-owner transfer. Never fund, sign, or broadcast.`;
+
+const chipnetPrompt = `Prepare a Chipnet operator packet template.
+
+Start only after a reviewed, released local CashVM example exists. Name its immutable public commit, example ID, and evidence digest at the top of the report.
+
+1. Re-run the released local positive and negative controls from the pinned commit.
+2. Record the exact synthetic transaction bytes and every boundary that makes them non-broadcastable.
+3. Produce a checklist separating operator-selected tBCH source outputs, funding authorization, private-key access, signing, pre-broadcast review, broadcast, and fresh chain attestation.
+4. State all public metadata and linkage surfaces a real broadcast would expose.
+5. Add no wallet integration, UTXO lookup, funding, signing, or network call.
+
+Return a reviewable operator packet template, not a claim that a Chipnet transaction was prepared, signed, relayed, accepted, or confirmed.`;
 
 const stages = [
   {
     number: "01",
     state: "RUNNABLE",
     stateClass: "pass",
-    title: "Verify a released proof",
-    body: "A dependency-free BN254 pairing verifies the released V4 SP1 Groth16 proof under its pinned wrapper key.",
-    href: `${source}/examples/01-verify-a-proof`,
-    link: "Inspect example 01",
+    title: "Verify a released proof in this browser",
+    body: "The self-contained verifier performs the complete BN254 pairing over the released V4 proof, pinned key, and public values without a clone, package, wallet, or backend verifier.",
+    href: "#browser-lab",
+    link: "Open the browser lab",
   },
   {
     number: "02",
     state: "RUNNABLE NEGATIVE",
     stateClass: "pass",
-    title: "Change one committed value",
-    body: "Keep the proof points intact, flip a settlement-projection bit, and watch the same pairing calculation reject it.",
-    href: `${source}/examples/01-verify-a-proof/README.md#tamper-or-negative-controls`,
-    link: "Read the tamper contract",
+    title: "Break one binding",
+    body: "Change public values, proof bytes, key bytes, or the selector and see the exact boundary reject—still entirely in the browser.",
+    href: "#browser-lab",
+    link: "Run a tamper case",
   },
   {
     number: "03",
+    state: "RUNNABLE",
+    stateClass: "pass",
+    title: "Audit the public repository",
+    body: "Pin the immutable release commit, reproduce the verifier from Node.js, run conformance, and inspect every evidence identity and non-claim.",
+    href: "#run-it",
+    link: "Use the clean-clone path",
+  },
+  {
+    number: "04",
     state: "PLANNED LAB",
     stateClass: "pending",
     title: "Simulate the transaction in CashVM",
-    body: "Build the next public example around Libauth: deterministic transaction construction, source outputs, local VM evaluation, and falsifying mutations.",
+    body: "The feasibility spike passes today; the next public example will pin Libauth and make the settlement-projection covenant falsifiable over a synthetic unsigned transaction.",
     href: "#cashvm-lab",
     link: "Use the CashVM build prompt",
   },
   {
-    number: "04",
+    number: "05",
     state: "OPERATOR GATE",
     stateClass: "pending",
     title: "Promote the local artifact to Chipnet",
@@ -99,7 +117,7 @@ const stages = [
     <div class="wrap hero-grid">
       <div>
         <span class="eyebrow">Learn / developer workshop</span>
-        <h1>Make one proof pass.<br />Break it.<br />Then build toward BCH.</h1>
+        <h1>Run a real proof.<br />Break it.<br />Then build toward BCH.</h1>
       </div>
       <div class="hero-note">
         <p>
@@ -119,7 +137,7 @@ const stages = [
     <div class="section-head">
       <div>
         <span class="eyebrow">Execution ladder</span>
-        <h2 id="ladder-title">Four boundaries. Two are runnable today.</h2>
+        <h2 id="ladder-title">Five boundaries. Three are runnable today.</h2>
       </div>
       <p class="muted">
         State labels are part of the claim. Planned work never borrows a green
@@ -140,6 +158,47 @@ const stages = [
         </li>
       ))}
     </ol>
+  </section>
+
+  <section class="wrap browser-lab" id="browser-lab" aria-labelledby="browser-title">
+    <div class="browser-intro">
+      <div>
+        <span class="eyebrow">Run here / zero install</span>
+        <h2 id="browser-title">The proof verifier is already loaded.</h2>
+      </div>
+      <div>
+        <p class="muted">
+          Choose the published proof or a tamper case. Your browser performs
+          the complete BN254 pairing locally. The artifact requests no
+          packages, wallet access, network data, or backend verification.
+        </p>
+        <div class="browser-actions">
+          <a class="browser-button mono" href={browserVerifier}>Open full-screen verifier →</a>
+          <a class="text-link mono" href={`${source}/browser-verifier/proofnote-browser-verifier.html`}>
+            inspect released HTML ↗
+          </a>
+        </div>
+        <p class="artifact-id mono">sha256 {browserArtifactSha256}</p>
+      </div>
+    </div>
+    <div class="browser-frame-shell">
+      <div class="browser-frame-head">
+        <span class="mono">local browser / released artifact</span>
+        <span class="state pass mono">OFFLINE</span>
+      </div>
+      <iframe
+        src={browserVerifier}
+        title="Proofnote released proof verifier"
+        loading="eager"
+        sandbox="allow-scripts"
+      ></iframe>
+      <noscript>
+        <p class="no-script">
+          JavaScript is off. <a href={browserVerifier}>Open the verifier</a> to read its
+          evidence identities and no-JavaScript explanation.
+        </p>
+      </noscript>
+    </div>
   </section>
 
   <section class="wrap lab" id="run-it" aria-labelledby="run-title">
@@ -312,6 +371,7 @@ const stages = [
   }
 
   .ladder,
+  .browser-lab,
   .lab,
   .boundary {
     padding-top: clamp(3.5rem, 8vw, 6rem);
@@ -388,6 +448,78 @@ const stages = [
   }
 
   .stage-link:hover { color: var(--text); }
+
+  .browser-lab {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .browser-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(18rem, 1.15fr);
+    gap: clamp(2rem, 7vw, 6rem);
+    align-items: end;
+  }
+
+  .browser-intro p { margin-top: 0; }
+
+  .browser-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem 1.2rem;
+    align-items: center;
+  }
+
+  .browser-button {
+    display: inline-flex;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--pass);
+    color: var(--text);
+    background: color-mix(in srgb, var(--pass) 10%, transparent);
+    font-size: 0.72rem;
+  }
+
+  .browser-button:hover { background: color-mix(in srgb, var(--pass) 18%, transparent); }
+  .browser-button:focus-visible { outline: 2px solid var(--pass); outline-offset: 3px; }
+
+  .artifact-id {
+    margin: 1rem 0 0 !important;
+    color: var(--dim);
+    font-size: 0.65rem;
+    overflow-wrap: anywhere;
+  }
+
+  .browser-frame-shell {
+    overflow: hidden;
+    border: 1px solid var(--rule-hi);
+    background: var(--surface);
+  }
+
+  .browser-frame-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
+
+  .browser-frame-shell iframe {
+    display: block;
+    width: 100%;
+    min-height: 50rem;
+    border: 0;
+    background: #090b0f;
+  }
+
+  .no-script {
+    margin: 0;
+    padding: 1rem;
+    color: var(--muted);
+  }
 
   .lab {
     display: grid;
@@ -502,6 +634,7 @@ const stages = [
   @media (max-width: 58rem) {
     .hero-grid,
     .section-head,
+    .browser-intro,
     .lab,
     .boundary {
       grid-template-columns: minmax(0, 1fr);
@@ -509,6 +642,7 @@ const stages = [
 
     .lab.reverse .lab-copy { order: initial; }
     .prompt-grid { grid-template-columns: 1fr; }
+    .browser-frame-shell iframe { min-height: 58rem; }
   }
 
   @media (max-width: 42rem) {

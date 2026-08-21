@@ -8,6 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
+    "check:browser-verifier": "node scripts/check-browser-verifier.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:links:offline": "node scripts/check-links.mjs --skip-external"
   },
