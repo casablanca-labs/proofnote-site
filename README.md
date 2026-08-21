@@ -36,11 +36,11 @@ intended apex domain but does not configure Pages by itself.
 ## Pinned public-source citations
 
 `SourceFile` blocks read real files at build time from a checkout of the public
-protocol repository and link to a pinned tag. The deployment workflow currently
+protocol repository and link to a pinned commit. The deployment workflow currently
 uses:
 
 ```text
-PROOFNOTE_REF: v0.4.4
+PROOFNOTE_REF: 0578955eb53cfc59aafa21251a5d71a663a33ec6
 ```
 
 A moved file or invalid line range fails the build. Moving the pin is a
@@ -50,7 +50,7 @@ For local work, the public checkout defaults to `../proofnote`. Override either
 value when needed:
 
 ```sh
-PROOFNOTE_SOURCE_ROOT=/path/to/proofnote PROOFNOTE_SOURCE_REF=v0.4.4 npm run build
+PROOFNOTE_SOURCE_ROOT=/path/to/proofnote PROOFNOTE_SOURCE_REF=0578955eb53cfc59aafa21251a5d71a663a33ec6 npm run build
 ```
 
 ## Validate locally
@@ -58,8 +58,8 @@ PROOFNOTE_SOURCE_ROOT=/path/to/proofnote PROOFNOTE_SOURCE_REF=v0.4.4 npm run bui
 ```sh
 npm ci
 npm run check
-# This workspace's legacy-named public checkout is ../apnt.
-PROOFNOTE_SOURCE_ROOT=../apnt PROOFNOTE_SOURCE_REF=v0.4.4 npm run build
+# This workspace's canonical public checkout is ../proofnote.
+PROOFNOTE_SOURCE_ROOT=../proofnote PROOFNOTE_SOURCE_REF=0578955eb53cfc59aafa21251a5d71a663a33ec6 npm run build
 npm run check:links:offline
 npm run check:links
 ```

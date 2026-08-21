@@ -30,12 +30,12 @@ interface Props {
 
 /*
  * The source repository is a separate checkout, not this repo. CI clones
- * Proofnote at a PINNED TAG before building, so every transcluded
+ * Proofnote at a PINNED COMMIT before building, so every transcluded
  * excerpt and every permalink names the exact release the page describes — a
  * later release cannot silently change what a published page appears to quote.
  *
  *   PROOFNOTE_SOURCE_ROOT  where the checkout lives   (default: ../proofnote)
- *   PROOFNOTE_SOURCE_REF   the tag it is pinned at     (default: v0.4.4)
+ *   PROOFNOTE_SOURCE_REF   the commit it is pinned at  (default: 0578955…)
  *
  * APNT_SOURCE_ROOT and APNT_SOURCE_REF remain accepted as local compatibility
  * aliases; APNT is the protocol name, not the public repository identity.
@@ -47,7 +47,9 @@ const REPO_ROOT = path.resolve(
 );
 const REPO_URL = "https://github.com/casablanca-labs/proofnote";
 const SOURCE_REF =
-  process.env.PROOFNOTE_SOURCE_REF ?? process.env.APNT_SOURCE_REF ?? "v0.4.4";
+  process.env.PROOFNOTE_SOURCE_REF ??
+  process.env.APNT_SOURCE_REF ??
+  "0578955eb53cfc59aafa21251a5d71a663a33ec6";
 
 const { path: relPath, lines, lang = "text", rev = SOURCE_REF } = Astro.props;
 
