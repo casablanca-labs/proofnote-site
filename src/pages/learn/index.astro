@@ -1,0 +1,524 @@
+---
+import Base from "../../layouts/Base.astro";
+
+const sourceCommit = "07860d5e929d7df0462beef7671cd7a1d108d22b";
+const sourceShort = sourceCommit.slice(0, 12);
+const repo = "https://github.com/casablanca-labs/proofnote";
+const source = `${repo}/tree/${sourceCommit}`;
+
+const startCommands = `git clone https://github.com/casablanca-labs/proofnote.git
+cd proofnote
+git checkout ${sourceCommit}
+node examples/01-verify-a-proof/run.mjs`;
+
+const tamperCommands = `node examples/01-verify-a-proof/run.mjs --tamper-settlement
+node examples/conformance.mjs
+node verify.mjs list
+node verify.mjs explain verify-a-proof`;
+
+const verifyPrompt = `Work only from a clean clone of casablanca-labs/proofnote at commit ${sourceCommit}.
+
+1. Confirm HEAD equals that commit and report whether the checkout is clean.
+2. Read examples/01-verify-a-proof/README.md and example.json.
+3. Run the documented positive verifier and require exit 0.
+4. Run --tamper-settlement and require PAIRING_REJECTED with exit 3.
+5. Run examples/conformance.mjs and report its runnable and blocked examples.
+6. Explain what the proof run establishes and every listed non-claim.
+
+Do not use private Proofnote repositories. Do not contact Chipnet. Do not claim CashVM execution, chain inclusion, wallet acceptance, or successive transfer.`;
+
+const cashVmPrompt = `Start from casablanca-labs/proofnote commit ${sourceCommit}. Build a local-only educational lab in a new branch; do not edit released evidence or claim the lab is a released Proofnote capability.
+
+Target: examples/02-simulate-cashvm using @bitauth/libauth.
+
+1. Inventory the published CashAssembly sources, settlement-authorization covenant bytecode fixture, public transition vectors, and verification non-claims.
+2. Pin the exact Libauth version you use and document the BCH VM rules it selects.
+3. Construct a deterministic unsigned transaction and matching source outputs using public fixtures only.
+4. Evaluate it locally in CashVM with network access disabled.
+5. Add one passing case and tamper cases for the settlement projection, source output, and locking bytecode.
+6. Print transaction size, VM result, and the exact reason each tamper fails.
+7. Add a machine-graded example.json, expected output, README, and conformance entry.
+
+Stop if a private witness, wallet key, funding UTXO, dependency/lockfile expansion, or unsupported protocol assumption is required. Return the diff and test evidence; do not fund, sign, or broadcast.`;
+
+const chipnetPrompt = `Given a reviewed, passing local CashVM example derived from casablanca-labs/proofnote commit ${sourceCommit}, prepare—but do not broadcast—a Chipnet continuation packet.
+
+1. Re-run the local positive and tamper cases at the exact source commit.
+2. Rebuild the unsigned transaction for Chipnet and identify every source output it requires.
+3. Report serialized bytes, consensus/standard VM results, expected fee, and all public metadata or linkage surfaces.
+4. Keep funding selection, private keys, signing, and broadcast outside the code and report.
+5. Produce an operator checklist with separate gates for tBCH funding, signing, pre-broadcast review, broadcast, and post-broadcast chain attestation.
+
+Stop before using tBCH, a wallet secret, or a network broadcast. Ask the operator for explicit authority at each of those boundaries.`;
+
+const stages = [
+  {
+    number: "01",
+    state: "RUNNABLE",
+    stateClass: "pass",
+    title: "Verify a released proof",
+    body: "A dependency-free BN254 pairing verifies the released V4 SP1 Groth16 proof under its pinned wrapper key.",
+    href: `${source}/examples/01-verify-a-proof`,
+    link: "Inspect example 01",
+  },
+  {
+    number: "02",
+    state: "RUNNABLE NEGATIVE",
+    stateClass: "pass",
+    title: "Change one committed value",
+    body: "Keep the proof points intact, flip a settlement-projection bit, and watch the same pairing calculation reject it.",
+    href: `${source}/examples/01-verify-a-proof/README.md#tamper-or-negative-controls`,
+    link: "Read the tamper contract",
+  },
+  {
+    number: "03",
+    state: "PLANNED LAB",
+    stateClass: "pending",
+    title: "Simulate the transaction in CashVM",
+    body: "Build the next public example around Libauth: deterministic transaction construction, source outputs, local VM evaluation, and falsifying mutations.",
+    href: "#cashvm-lab",
+    link: "Use the CashVM build prompt",
+  },
+  {
+    number: "04",
+    state: "OPERATOR GATE",
+    stateClass: "pending",
+    title: "Promote the local artifact to Chipnet",
+    body: "Prepare an unsigned continuation first. Funding, signing, broadcast, and chain attestation remain separate human-authorized steps.",
+    href: "#chipnet",
+    link: "Prepare the Chipnet packet",
+  },
+];
+---
+
+<Base
+  title="Learn Proofnote — verify, simulate, and prepare for Chipnet"
+  description="Run a real Proofnote verifier, make it fail, then progress from local CashVM simulation toward an explicitly authorized Chipnet transaction."
+>
+  <section class="learn-hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">Learn / developer workshop</span>
+        <h1>Make one proof pass.<br />Break it.<br />Then build toward BCH.</h1>
+      </div>
+      <div class="hero-note">
+        <p>
+          Proofnote is easiest to understand as an execution sequence, not a
+          whitepaper. Start with released bytes and a falsifiable result. Move
+          into CashVM locally. Touch Chipnet only after the transaction and its
+          privacy residue are reviewable.
+        </p>
+        <a class="source-link mono" href={source}>
+          immutable source {sourceShort}… ↗
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap ladder" aria-labelledby="ladder-title">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Execution ladder</span>
+        <h2 id="ladder-title">Four boundaries. Two are runnable today.</h2>
+      </div>
+      <p class="muted">
+        State labels are part of the claim. Planned work never borrows a green
+        badge from the released verifier.
+      </p>
+    </div>
+
+    <ol class="stage-list">
+      {stages.map((stage) => (
+        <li class="stage">
+          <span class="stage-number mono">{stage.number}</span>
+          <div class="stage-copy">
+            <span class={`state ${stage.stateClass} mono`}>{stage.state}</span>
+            <h3>{stage.title}</h3>
+            <p>{stage.body}</p>
+          </div>
+          <a href={stage.href} class="stage-link mono">{stage.link} →</a>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="wrap lab" id="run-it" aria-labelledby="run-title">
+    <div class="lab-copy">
+      <span class="eyebrow">Run now</span>
+      <h2 id="run-title">A real PASS, from a clean clone.</h2>
+      <p class="muted">
+        No install is required for example 01. The runner uses only the
+        published fixture, verification key, and Node.js built-ins.
+      </p>
+      <a href={`${source}/examples/01-verify-a-proof/README.md`} class="text-link mono">
+        Read the exact example contract ↗
+      </a>
+    </div>
+    <div class="terminal" data-copy-source="start-commands">
+      <div class="terminal-head">
+        <span class="mono">local / proof</span>
+        <button type="button" data-copy="start-commands">Copy</button>
+      </div>
+      <pre id="start-commands"><code>{startCommands}</code></pre>
+      <p class="expected"><span class="state pass mono">EXPECTED</span> exit 0 · pairing verified</p>
+    </div>
+  </section>
+
+  <section class="wrap lab reverse" id="tamper" aria-labelledby="tamper-title">
+    <div class="lab-copy">
+      <span class="eyebrow">Falsify it</span>
+      <h2 id="tamper-title">The useful demo is the one that can fail.</h2>
+      <p class="muted">
+        The tamper preserves valid curve-point encodings while changing a
+        committed settlement value. Arithmetic binding—not a parser
+        shortcut—rejects it.
+      </p>
+    </div>
+    <div class="terminal" data-copy-source="tamper-commands">
+      <div class="terminal-head">
+        <span class="mono">local / negative controls</span>
+        <button type="button" data-copy="tamper-commands">Copy</button>
+      </div>
+      <pre id="tamper-commands"><code>{tamperCommands}</code></pre>
+      <p class="expected"><span class="state fail mono">EXPECTED</span> PAIRING_REJECTED · exit 3</p>
+    </div>
+  </section>
+
+  <section class="agent-section" aria-labelledby="agents-title">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Agentic interface</span>
+          <h2 id="agents-title">Delegate the mechanics. Keep the authority boundaries.</h2>
+        </div>
+        <p class="muted">
+          These prompts are work contracts. They identify the source, demand
+          negative controls, and stop before secrets or network mutation.
+        </p>
+      </div>
+
+      <div class="prompt-grid">
+        <article class="prompt-card">
+          <div class="prompt-head">
+            <span class="state pass mono">RUNNABLE</span>
+            <button type="button" data-copy="verify-prompt">Copy prompt</button>
+          </div>
+          <h3>Audit the released verifier</h3>
+          <pre id="verify-prompt"><code>{verifyPrompt}</code></pre>
+        </article>
+
+        <article class="prompt-card" id="cashvm-lab">
+          <div class="prompt-head">
+            <span class="state pending mono">PLANNED LAB</span>
+            <button type="button" data-copy="cashvm-prompt">Copy prompt</button>
+          </div>
+          <h3>Build the Libauth CashVM example</h3>
+          <p class="prompt-limit">
+            No reviewed runner is released yet. This prompt defines the next
+            example contract; it does not display invented VM output.
+          </p>
+          <pre id="cashvm-prompt"><code>{cashVmPrompt}</code></pre>
+        </article>
+
+        <article class="prompt-card" id="chipnet">
+          <div class="prompt-head">
+            <span class="state pending mono">OPERATOR GATE</span>
+            <button type="button" data-copy="chipnet-prompt">Copy prompt</button>
+          </div>
+          <h3>Prepare a Chipnet continuation</h3>
+          <p class="prompt-limit">
+            Construction can be automated. tBCH funding, signing, broadcast,
+            and post-broadcast attestation remain separate approvals.
+          </p>
+          <pre id="chipnet-prompt"><code>{chipnetPrompt}</code></pre>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap boundary" aria-labelledby="boundary-title">
+    <div>
+      <span class="eyebrow">Current R&D boundary</span>
+      <h2 id="boundary-title">Successive private transfer is not a tutorial yet.</h2>
+    </div>
+    <div>
+      <p>
+        Bob → Charles remains blocked until host, Rust, SP1, proof,
+        authenticated CashVM verifier, settlement, chain, and recipient
+        acceptance evidence agree. The public repository carries the blocker
+        as a machine-readable example instead of a runnable-looking substitute.
+      </p>
+      <a href={`${source}/examples/05-successive-owner-transfer/README.md`} class="text-link mono">
+        Inspect all eight blockers ↗
+      </a>
+    </div>
+  </section>
+
+  <script>
+    for (const button of document.querySelectorAll<HTMLButtonElement>("[data-copy]")) {
+      button.addEventListener("click", async () => {
+        const target = document.getElementById(button.dataset.copy ?? "");
+        if (!target) return;
+        try {
+          await navigator.clipboard.writeText(target.textContent ?? "");
+          const prior = button.textContent;
+          button.textContent = "Copied";
+          setTimeout(() => (button.textContent = prior), 1400);
+        } catch {
+          const selection = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(target);
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+          button.textContent = "Select text";
+        }
+      });
+    }
+  </script>
+</Base>
+
+<style>
+  .learn-hero {
+    padding-block: clamp(4rem, 10vw, 8rem) clamp(3rem, 8vw, 6rem);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+    gap: clamp(3rem, 8vw, 7rem);
+    align-items: end;
+  }
+
+  .learn-hero h1 {
+    max-width: 22ch;
+    font-size: clamp(2.15rem, 5.2vw, 4.5rem);
+    line-height: 1.06;
+  }
+
+  .hero-note {
+    border-left: 1px solid var(--rule-hi);
+    padding-left: 1.5rem;
+  }
+
+  .hero-note p {
+    color: var(--muted);
+  }
+
+  .source-link,
+  .text-link {
+    color: var(--pass);
+    font-size: 0.75rem;
+  }
+
+  .ladder,
+  .lab,
+  .boundary {
+    padding-top: clamp(3.5rem, 8vw, 6rem);
+  }
+
+  .section-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.55fr);
+    gap: 3rem;
+    align-items: end;
+    margin-bottom: 2rem;
+  }
+
+  .section-head p {
+    margin: 0;
+  }
+
+  .stage-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule-hi);
+  }
+
+  .stage {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr) auto;
+    gap: 1.5rem;
+    align-items: center;
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .stage-number {
+    color: var(--dim);
+    font-size: 0.75rem;
+  }
+
+  .state {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+  }
+
+  .state::before {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .state.pass { color: var(--pass); }
+  .state.pending { color: var(--pending); }
+  .state.fail { color: var(--fail); }
+
+  .stage h3 {
+    margin-top: 0.55rem;
+  }
+
+  .stage p {
+    margin: 0.45rem 0 0;
+    color: var(--muted);
+    max-width: 62ch;
+    font-size: 0.9rem;
+  }
+
+  .stage-link {
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-align: right;
+  }
+
+  .stage-link:hover { color: var(--text); }
+
+  .lab {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.65fr) minmax(0, 1.35fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .lab > * {
+    min-width: 0;
+  }
+
+  .lab.reverse .lab-copy { order: 2; }
+
+  .terminal,
+  .prompt-card {
+    border: 1px solid var(--rule-hi);
+    background: var(--surface);
+  }
+
+  .terminal-head,
+  .prompt-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
+
+  button {
+    appearance: none;
+    border: 1px solid var(--rule-hi);
+    background: transparent;
+    color: var(--text);
+    font: 0.68rem var(--mono);
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+  }
+
+  button:hover { border-color: var(--pass); }
+  button:focus-visible { outline: 2px solid var(--pass); outline-offset: 3px; }
+
+  .terminal pre,
+  .prompt-card pre {
+    margin: 0;
+    border: 0;
+    border-left: 0;
+    background: transparent !important;
+  }
+
+  .expected {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0;
+    padding: 0.8rem 1rem;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  .agent-section {
+    margin-top: clamp(4rem, 10vw, 8rem);
+    padding-block: clamp(3.5rem, 8vw, 6rem);
+    border-block: 1px solid var(--rule);
+    background: var(--surface);
+  }
+
+  .prompt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+
+  .prompt-card {
+    min-width: 0;
+    border: 0;
+    background: var(--bg);
+  }
+
+  .prompt-card h3 {
+    padding: 1.25rem 1rem 0;
+  }
+
+  .prompt-card pre {
+    max-height: 30rem;
+    white-space: pre-wrap;
+  }
+
+  .prompt-limit {
+    padding: 0 1rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  .boundary {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: clamp(2rem, 7vw, 6rem);
+    padding-bottom: 1rem;
+  }
+
+  .boundary p { color: var(--muted); }
+
+  @media (max-width: 58rem) {
+    .hero-grid,
+    .section-head,
+    .lab,
+    .boundary {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lab.reverse .lab-copy { order: initial; }
+    .prompt-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 42rem) {
+    .stage {
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+    }
+
+    .stage-link {
+      grid-column: 2;
+      text-align: left;
+    }
+  }
+</style>
