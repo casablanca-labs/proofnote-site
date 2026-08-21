@@ -1,12 +1,12 @@
 ---
 import Base from "../../layouts/Base.astro";
 
-const sourceCommit = "fcb8a55ffd9f425bf95bb936473d5bb325c62ff2";
+const sourceCommit = "0ae4d5fd925cf9782302b26e66a1a160f15174d0";
 const sourceShort = sourceCommit.slice(0, 12);
 const repo = "https://github.com/casablanca-labs/proofnote";
 const source = `${repo}/tree/${sourceCommit}`;
 const browserVerifier = "/verify/browser/";
-const browserArtifactSha256 = "d8e2a8a65c000f1cc3041bcfe7c8b6b21eb80864f59f254db35f94e2efbdf2ed";
+const browserArtifactSha256 = "691e824b9c9960d585eefa56462e5adf175d822dff282fcb2e37683b3e691263";
 
 const startCommands = `git clone https://github.com/casablanca-labs/proofnote.git
 cd proofnote
@@ -72,12 +72,12 @@ const stages = [
   },
   {
     number: "02",
-    state: "RUNNABLE NEGATIVE",
+    state: "TRACEABLE",
     stateClass: "pass",
-    title: "Break one binding",
-    body: "Change public values, proof bytes, key bytes, or the selector and see the exact boundary reject—still entirely in the browser.",
+    title: "Follow the proof into BCH",
+    body: "See the exact program key and settlement projection verified by the pairing, then follow the remaining builder, authenticated-verdict, UTXO-seal, wallet, and chain boundaries without collapsing them into one claim.",
     href: "#browser-lab",
-    link: "Run a tamper case",
+    link: "Inspect the binding map",
   },
   {
     number: "03",
@@ -168,9 +168,11 @@ const stages = [
       </div>
       <div>
         <p class="muted">
-          Choose the published proof or a tamper case. Your browser performs
-          the complete BN254 pairing locally. The artifact requests no
-          packages, wallet access, network data, or backend verification.
+          Run the published proof, inspect its complete released JSON, and
+          trace each verified value toward the BCH transaction boundary. Your
+          browser performs the complete BN254 pairing locally. The release
+          harness still falsifies every binding, while the visitor view stays
+          focused on one proof and one honest path toward a proof-bound spend.
         </p>
         <div class="browser-actions">
           <a class="browser-button mono" href={browserVerifier}>Open full-screen verifier →</a>
