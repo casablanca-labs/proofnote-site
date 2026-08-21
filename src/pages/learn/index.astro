@@ -1,12 +1,12 @@
 ---
 import Base from "../../layouts/Base.astro";
 
-const sourceCommit = "0ae4d5fd925cf9782302b26e66a1a160f15174d0";
+const sourceCommit = "31b74e8a0391d432e5544cb5fe6366f40619b482";
 const sourceShort = sourceCommit.slice(0, 12);
 const repo = "https://github.com/casablanca-labs/proofnote";
 const source = `${repo}/tree/${sourceCommit}`;
 const browserVerifier = "/verify/browser/";
-const browserArtifactSha256 = "691e824b9c9960d585eefa56462e5adf175d822dff282fcb2e37683b3e691263";
+const browserArtifactSha256 = "928aa666060dd9b138d2719bcb245d2194e6e7bec3ef9d5cc4dfdbaa404b4da0";
 
 const startCommands = `git clone https://github.com/casablanca-labs/proofnote.git
 cd proofnote
@@ -22,7 +22,7 @@ const verifyPrompt = `Audit the released verifier.
 
 Work only from a clean clone of casablanca-labs/proofnote at commit ${sourceCommit}.
 
-Preflight: require Node.js >=20.6.0, confirm HEAD equals the commit, and confirm the checkout is clean.
+Preflight: require Node.js >=20.6.0 and pnpm, confirm HEAD equals the commit, and confirm the checkout is clean. Run pnpm install --frozen-lockfile before conformance.
 
 1. Read examples/01-verify-a-proof/README.md and example.json.
 2. Run node examples/01-verify-a-proof/run.mjs; require exit 0.
@@ -32,21 +32,22 @@ Preflight: require Node.js >=20.6.0, confirm HEAD equals the commit, and confirm
 
 Use no private repository or network. Do not claim CashVM execution, BCH validation or inclusion, wallet acceptance, spendability, privacy, or successive transfer.`;
 
-const cashVmPrompt = `Build a local settlement-authorization CashVM example.
+const cashVmPrompt = `Audit the released proof-bound CashVM spend lab.
 
-Start from casablanca-labs/proofnote commit ${sourceCommit} in a new branch.
+Work only from a clean clone of casablanca-labs/proofnote at commit ${sourceCommit}. Do not edit files.
 
-This task is explicitly authorized to add only @bitauth/libauth@3.1.0-next.8 and its deterministic pnpm-lock.yaml closure (npm integrity sha512-Pm+Ju+YP3JeBLLTiVrBnia2wwE4G17r4XqpvPRMcklElJTe8J6x3JgKRg1by0Xm3ZY6UFxACkEAoSA+x419/zA==). Do not add, remove, or upgrade any other dependency. The example must execute with network access denied after installation.
+Use the frozen lockfile. Confirm @bitauth/libauth is exactly 3.1.0-next.8 with npm integrity sha512-Pm+Ju+YP3JeBLLTiVrBnia2wwE4G17r4XqpvPRMcklElJTe8J6x3JgKRg1by0Xm3ZY6UFxACkEAoSA+x419/zA==. Disable network access while running the example.
 
-Target: examples/06-simulate-settlement-authorization-cashvm. Examples 02 through 05 are reserved by the released developer journey. Do not edit released evidence.
+Target: examples/06-simulate-proof-bound-cashvm.
 
-1. Inventory the published public transition vectors, CashAssembly sources, and settlement-authorization bytecode fixture.
-2. Reconstruct a deterministic synthetic unsigned transaction and its source outputs solely from a declared public vector. Record every input digest.
-3. Evaluate the covenant with createVirtualMachineBch2026(false), Libauth's BCH_2026_05 consensus instruction set. Report createVirtualMachineBch2026(true) standard-policy evaluation separately.
-4. Add a passing case plus deterministic tampering of the projection commitment, one source output, and locking bytecode. Print byte size, VM profile, verdict, raw VM error or top-stack state, and the application-level reason for each failure.
-5. Add README, runner, expected output, example.json, and a conformance entry. Require pnpm install --frozen-lockfile and deny network during conformance.
+1. Read README.md and example.json; verify every pinned input digest.
+2. Run pnpm install --frozen-lockfile, then execute the positive path and require exit 0.
+3. Run --tamper-proof, --mismatch-fixture, --tamper-verdict, --tamper-source, and --tamper-locking; require their documented non-zero exit codes and classifications.
+4. Run node examples/conformance.mjs and require all examples to match their contracts.
+5. Explain the complete chain: private witness and relation → proof and public values → pinned-key Groth16 pairing → authenticated terminal verdict → settlement covenant re-derivation of the BCH transaction projection → authorized UTXO spend.
+6. Separate the measured proof-generation time, proof byte size, native verification time, covenant execution, and transaction byte size. Explain why proving time depends on the relation, witness size, recursion/wrapping, hardware, and prover implementation.
 
-This establishes only local CashVM evaluation of the frozen settlement-projection covenant over a synthetic public fixture. It does not establish Groth16 execution in CashVM, chain inclusion, funding, signing, wallet acceptance, privacy, or successive-owner transfer. Never fund, sign, or broadcast.`;
+The lab performs a real pairing and real local covenant execution, but uses a synthetic terminal verdict token instead of executing Proofnote's production authenticated verifier graph. It does not establish chain inclusion, funding, signing, wallet acceptance, privacy, or successive-owner transfer. Never fund, sign, broadcast, or claim the covenant itself verifies Groth16.`;
 
 const chipnetPrompt = `Prepare a Chipnet operator packet template.
 
@@ -90,12 +91,12 @@ const stages = [
   },
   {
     number: "04",
-    state: "PLANNED LAB",
-    stateClass: "pending",
+    state: "RUNNABLE",
+    stateClass: "pass",
     title: "Simulate the transaction in CashVM",
-    body: "The feasibility spike passes today; the next public example will pin Libauth and make the settlement-projection covenant falsifiable over a synthetic unsigned transaction.",
+    body: "Run the released proof-bound spend lab: verify the real pairing, reconstruct the unsigned transaction, execute the covenant in Libauth CashVM, then watch five binding failures reject.",
     href: "#cashvm-lab",
-    link: "Use the CashVM build prompt",
+    link: "Run the released CashVM lab",
   },
   {
     number: "05",
@@ -270,14 +271,17 @@ const stages = [
 
         <article class="prompt-card" id="cashvm-lab">
           <div class="prompt-head">
-            <span class="state pending mono">PLANNED LAB</span>
+            <span class="state pass mono">RUNNABLE</span>
             <button type="button" data-copy="cashvm-prompt">Copy prompt</button>
           </div>
-          <h3>Build the Libauth CashVM example</h3>
+          <h3>Run the Libauth CashVM example</h3>
           <p class="prompt-limit">
-            No reviewed runner is released yet. This prompt defines the next
-            example contract; it does not display invented VM output.
+            The agent audits immutable released code and executes the positive
+            path plus every negative control. It receives no wallet or network authority.
           </p>
+          <a href={`${source}/examples/06-simulate-proof-bound-cashvm/README.md`} class="text-link mono">
+            Inspect the released lab contract ↗
+          </a>
           <pre id="cashvm-prompt"><code>{cashVmPrompt}</code></pre>
         </article>
 
