@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const expectedSha256 = "22ad37979c666e39f9f0ee6567b00901b315e155918ae46fc5cf059e45b8a95a";
+const expectedSha256 = "d8e2a8a65c000f1cc3041bcfe7c8b6b21eb80864f59f254db35f94e2efbdf2ed";
 const artifactPath = resolve("public/verify/browser/index.html");
 const bytes = readFileSync(artifactPath);
 const actualSha256 = createHash("sha256").update(bytes).digest("hex");
