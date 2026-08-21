@@ -22,7 +22,7 @@ tree.
 | claim | result | limit that travels with it |
 |---|---|---|
 | Real canonical Relation V6 proof | **PASS** | A real proof is not, by itself, settlement or wallet acceptance. |
-| Authenticated verifier, gate, and exact canonical settlement | **PASS** | Local BCH VM conformance is not relay acceptance or chain inclusion. |
+| Authenticated on-chain CashVM verifier, gate, and exact retained settlement candidate | **PASS** | Local BCH VM conformance is not relay acceptance or chain inclusion. |
 | Real wallet proof capability | **PASS** | The capability is process-local and cannot be replaced by a caller's success flag. |
 | Configured-node chain capability | **PASS** | This is authority over evidence from the wallet-selected validating node, not a new source of consensus truth. |
 | Authenticated Recovery V1 | **PASS** | Recovery produces wallet-private candidates; Recovery is not spendability. |
@@ -34,21 +34,19 @@ Proof Notes console aligned with these same lifecycle boundaries. “Complete”
 there refers to the Relation V6 program's current task list, not to full APNT or
 successive private transfer.
 
-## Canonical settlement measurement
+## Settlement artifacts and measurements
 
-| measurement | value |
-|---|---|
-| serialized size | **99,950 bytes** |
-| SHA-256 | `2ae95c94910ee9adb49e37a668871b9913231da6f513f164d7649fe36ef80770` |
-| shape | 12 inputs / 21 outputs |
-| standard-size margin | 50 bytes |
-| local BCH-2026 consensus VM | **PASS** |
-| local BCH-2026 standard VM | **PASS** |
+| artifact | size | state | identity / limit |
+|---|---:|---|---|
+| Confirmed V4 Chipnet reference transaction | **99,835 bytes** | **CONFIRMED** | txid [`8510edd3b26e85aaf401d32873cdd035cd3f0cfe0a233f682597145a1bfea6f4`](https://chipnet.imaginary.cash/tx/8510edd3b26e85aaf401d32873cdd035cd3f0cfe0a233f682597145a1bfea6f4) |
+| Private candidate-3 fixture | **99,500 bytes** | **PRIVATE FIXTURE** | Not broadcast; not the confirmed transaction. |
+| Retained Relation V6 settlement candidate | **99,950 bytes** | **UNBROADCAST** | SHA-256 `2ae95c94910ee9adb49e37a668871b9913231da6f513f164d7649fe36ef80770`; 12 inputs / 21 outputs; 50-byte standard-size margin; local BCH-2026 consensus and standard VMs PASS. |
 
-This exact settlement has not established relay acceptance or live Chipnet
-inclusion. The earlier chain-confirmed import in the public `v0.4.4` release is
-a different path and a different transaction; it must not be used to fill this
-gate by analogy.
+The V6 candidate has not established relay acceptance or live Chipnet
+inclusion. The confirmed V4 reference is a different path and transaction; it
+does not establish the V6 candidate's chain inclusion, proof-to-transaction
+equivalence, wallet acceptance, or spendability by analogy. Groth16-envelope-
+to-certificate-decomposition soundness equivalence remains unreviewed.
 
 ## The original research question, decomposed
 

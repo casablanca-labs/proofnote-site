@@ -18,10 +18,11 @@ disappear—was the crucial research problem.
 That is no longer the boundary.
 
 The current Relation V6 path enforces hidden note semantics and exact
-conservation, constructs a real proof, authenticates it through the BCH
-verifier and settlement gate, recovers the recipient's candidates, and lets a
-wallet independently accept those candidates against proof and configured-node
-chain evidence at a point in time.
+conservation, constructs a real proof, authenticates it through the
+authenticated on-chain CashVM verifier and settlement gate, recovers the
+recipient's candidates, and
+lets a wallet independently accept those candidates against proof and
+configured-node chain evidence at a point in time.
 
 That is a meaningful result. It is also half of the question.
 
@@ -82,16 +83,20 @@ accept an aggregator's word for any of this: it requires process-local proof
 authority, configured-node chain authority, authenticated Recovery V1, and the
 current backing state.
 
-The canonical settlement is **99,950 bytes**—50 bytes inside the standard
-transaction-size limit. That number is useful because it records the actual
-engineering envelope, not because transaction size is the research result.
+Three artifacts matter here, and they are not interchangeable. The confirmed
+Chipnet reference transaction is **99,835 bytes**, txid
+[`8510edd3b26e85aaf401d32873cdd035cd3f0cfe0a233f682597145a1bfea6f4`](https://chipnet.imaginary.cash/tx/8510edd3b26e85aaf401d32873cdd035cd3f0cfe0a233f682597145a1bfea6f4).
+The private candidate-3 fixture is **99,500 bytes**. The retained Relation V6
+settlement candidate is **99,950 bytes**—50 bytes inside the standard
+transaction-size limit—but remains unbroadcast and establishes local
+conformance only. Neither private candidate is the confirmed transaction.
 
 Here is the current boundary in compact form:
 
 | Capability | Result |
 |---|---|
 | Hidden Relation V6 semantics and exact conservation | **ESTABLISHED** |
-| Real proof, authenticated verifier/gate, and exact local settlement | **ESTABLISHED** |
+| Real proof, authenticated on-chain CashVM verifier/gate, and exact local settlement | **ESTABLISHED** |
 | Recovery V1 and point-in-time wallet acceptance | **ESTABLISHED** |
 | Live Chipnet inclusion of this canonical fresh-category path | **OPEN** |
 | Recording, persistence, and durable reorg-safe wallet state | **OPEN** |
